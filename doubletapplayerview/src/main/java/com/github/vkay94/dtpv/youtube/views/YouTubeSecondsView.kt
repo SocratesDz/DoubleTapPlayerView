@@ -1,5 +1,6 @@
 package com.github.vkay94.dtpv.youtube.views
 
+import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
@@ -30,6 +31,21 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
     private var icon2: ImageView
     private var icon3: ImageView
 
+    private val animatorSet: AnimatorSet by lazy {
+        AnimatorSet().apply {
+            playSequentially(
+                firstAnimator,
+                secondAnimator,
+                thirdAnimator,
+                fourthAnimator,
+                fifthAnimator
+            )
+            doOnEnd {
+                currentPlayTime = 0L
+            }
+        }
+    }
+
     init {
         LayoutInflater.from(context).inflate(R.layout.yt_seconds_view, this, true)
 
@@ -46,11 +62,7 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
      */
     var cycleDuration: Long = 750L
         set(value) {
-            firstAnimator.duration = value / 5
-            secondAnimator.duration = value / 5
-            thirdAnimator.duration = value / 5
-            fourthAnimator.duration = value / 5
-            fifthAnimator.duration = value / 5
+            animatorSet.duration = cycleDuration / 5
             field = value
         }
 
@@ -93,18 +105,14 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
      */
     fun start() {
         stop()
-        firstAnimator.start()
+        animatorSet.start()
     }
 
     /**
      * Stops the triangle animation
      */
     fun stop() {
-        firstAnimator.cancel()
-        secondAnimator.cancel()
-        thirdAnimator.cancel()
-        fourthAnimator.cancel()
-        fifthAnimator.cancel()
+        animatorSet.cancel()
         reset()
     }
 
@@ -124,10 +132,6 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
             addUpdateListener {
                 icon1.alpha = (it.animatedValue as Float)
             }
-
-            doOnEnd {
-                secondAnimator.start()
-            }
         }
     }
 
@@ -140,9 +144,6 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
             }
             addUpdateListener {
                 icon2.alpha = (it.animatedValue as Float)
-            }
-            doOnEnd {
-                thirdAnimator.start()
             }
         }
     }
@@ -159,9 +160,6 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
                     1f - icon3.alpha // or 1f - it (t3.alpha => all three stay a little longer together)
                 icon3.alpha = (it.animatedValue as Float)
             }
-            doOnEnd {
-                fourthAnimator.start()
-            }
         }
 
     }
@@ -176,10 +174,6 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
             addUpdateListener {
                 icon2.alpha = 1f - (it.animatedValue as Float)
             }
-            doOnEnd {
-                fifthAnimator.start()
-            }
-
         }
     }
 
@@ -192,9 +186,6 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
             }
             addUpdateListener {
                 icon3.alpha = 1f - (it.animatedValue as Float)
-            }
-            doOnEnd {
-                firstAnimator.start()
             }
         }
     }
