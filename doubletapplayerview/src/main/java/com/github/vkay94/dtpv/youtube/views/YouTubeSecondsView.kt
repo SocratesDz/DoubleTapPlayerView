@@ -10,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import com.github.vkay94.dtpv.R
 
@@ -31,6 +30,15 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
     private var icon2: ImageView
     private var icon3: ImageView
 
+    /**
+     * This animation should work as an infinite repeating animation. However, the appropriate way
+     * to handle infinite repeating animations, is by using the properties `repeatMode` and
+     * `repeatCount` and setting them to `RESTART` and `INFINITE` respectively. This triggers a
+     * memory leak due to references that cannot be collected by the GC. This bug is reported
+     * in the Android repository: https://issuetracker.google.com/issues/212993949
+     *
+     * Until a solution is found for this (or the bug is fixed), this animation runs only once.
+     */
     private val animatorSet: AnimatorSet by lazy {
         AnimatorSet().apply {
             playSequentially(
@@ -40,9 +48,6 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
                 fourthAnimator,
                 fifthAnimator
             )
-            doOnEnd {
-                currentPlayTime = 0L
-            }
         }
     }
 

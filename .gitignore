@@ -89,3 +89,9 @@ lint/tmp/
 
 # Signing
 keystore.properties
+/.idea/.name
+/.idea/compiler.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/jarRepositories.xml
+/.idea/kotlinc.xml
+/.idea/misc.xml
