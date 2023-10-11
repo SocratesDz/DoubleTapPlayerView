@@ -3,6 +3,8 @@ package com.github.vkay94.dtpv.youtube.views
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.widget.ImageView
@@ -31,14 +33,16 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
     private var icon3: ImageView
 
     /**
-     * This animation should work as an infinite repeating animation. However, the appropriate way
+     * This animation works as an infinite repeating animation. However, the appropriate way
      * to handle infinite repeating animations, is by using the properties `repeatMode` and
-     * `repeatCount` and setting them to `RESTART` and `INFINITE` respectively. This triggers a
-     * memory leak due to references that cannot be collected by the GC. This bug is reported
+     * `repeatCount` and setting them to `RESTART` and `INFINITE` respectively. But doing it that
+     * way triggers a memory leak due to references that cannot be collected by the GC, as reported
      * in the Android repository: https://issuetracker.google.com/issues/212993949
      *
-     * Until a solution is found for this (or the bug is fixed), this animation runs only once.
+     * Until then, this animation runs with a Handler.
      */
+    private var shouldAnimate = false
+
     private val animatorSet: AnimatorSet by lazy {
         AnimatorSet().apply {
             playSequentially(
@@ -48,6 +52,20 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
                 fourthAnimator,
                 fifthAnimator
             )
+        }
+    }
+
+    private val animationHandler = Handler(Looper.getMainLooper())
+
+    private val animatorRunnable = Runnable {
+        repeatingAnimationCallback()
+    }
+
+    private val repeatingAnimationCallback: () -> Unit = {
+        if(shouldAnimate) {
+            animatorSet.cancel()
+            animatorSet.start()
+            animationHandler.postDelayed(animatorRunnable, cycleDuration)
         }
     }
 
@@ -110,15 +128,23 @@ class SecondsView(context: Context, attrs: AttributeSet?) :
      */
     fun start() {
         stop()
-        animatorSet.start()
+        shouldAnimate = true
+        animationHandler.post(animatorRunnable)
     }
 
     /**
      * Stops the triangle animation
      */
     fun stop() {
+        shouldAnimate = false
         animatorSet.cancel()
+        animationHandler.removeCallbacksAndMessages(null)
         reset()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        stop()
     }
 
     private fun reset() {
